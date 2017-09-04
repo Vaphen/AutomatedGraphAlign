@@ -1,0 +1,35 @@
+# depslib dependency file v1.0
+1504527187 source:/home/john/Dropbox/Programme/SFMLTest/main.cpp
+	<SFML/Graphics.hpp>
+	<random>
+	<map>
+	<cstdlib>
+	<cmath>
+	<thread>
+	<chrono>
+	"Graph.hpp"
+	"ExpandingGraphManager.h"
+
+1504182021 /home/john/Dropbox/Programme/SFMLTest/Graph.hpp
+	<vector>
+	<initializer_list>
+	<iostream>
+	<algorithm>
+	"Node.hpp"
+	"Edge.hpp"
+
+1504294140 /home/john/Dropbox/Programme/SFMLTest/Node.hpp
+	<vector>
+	<initializer_list>
+	<ostream>
+	<algorithm>
+
+1496580974 /home/john/Dropbox/Programme/SFMLTest/Edge.hpp
+	"Node.hpp"
+
+1504527491 /home/john/Dropbox/Programme/SFMLTest/include/ExpandingGraphManager.h
+
+1504441768 /home/john/Dropbox/Programme/SFMLTest/ExpandingGraphManager.h
+
+1504515670 /home/john/Dropbox/Programme/SFMLTest/include//ExpandingGraphManager.h
+
