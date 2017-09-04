@@ -76,16 +76,14 @@ int main()
         {
             if (event.type == sf::Event::Closed) {
                 window.close();
+            } else if(event.type == sf::Event::MouseButtonReleased) {
+                auto x = graph.addNode(sf::Color(255, 255, 255), {a, b, c, d});
+                x->setPosition(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y);
             }
         }
 
         window.clear();
         drawGraph(graph);
-      /*  if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
-        {
-            auto x = graph.addNode(sf::Color(255, 255, 255), {a, b});
-            x->setPosition(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y);
-        }*/
         gm.update();
         window.display();
     }
