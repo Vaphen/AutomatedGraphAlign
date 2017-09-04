@@ -45,6 +45,20 @@ void drawGraph(Graph<T, DIRECTED> &graph) {
 int main()
 {
     Graph<sf::Color> graph;
+
+    /*auto openstack = graph.addNode(sf::Color::Green);
+    auto ubuntu = graph.addNode(sf::Color::Green, {openstack});
+    auto java = graph.addNode(sf::Color::Green, {ubuntu});
+    auto tomcat = graph.addNode(sf::Color::Green, {ubuntu, java});
+    auto wso2bp2 = graph.addNode(sf::Color::Green, {ubuntu, java});
+    auto container = graph.addNode(sf::Color::Green, {wso2bp2, java, tomcat, ubuntu});
+    auto admin = graph.addNode(sf::Color::Green, {container, tomcat});
+    auto winery = graph.addNode(sf::Color::Green, {container, tomcat});
+    auto modeler = graph.addNode(sf::Color::Green, {tomcat, winery});
+    auto vinothek = graph.addNode(sf::Color::Green, {tomcat, container});*/
+
+
+
     auto a = graph.addNode(sf::Color::Green);
     auto b = graph.addNode(sf::Color::Blue, {a});
     auto c = graph.addNode(sf::Color::Yellow, {b});

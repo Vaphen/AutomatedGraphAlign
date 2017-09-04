@@ -71,8 +71,8 @@ class ExpandingGraphManager
                     std::pair<float, float> directionVec = calculateDirectionVectorFromTo(node, adjNode);
 
 
-                    float xVec = distancesToCurNode[adjNode] / 1000 * directionVec.first;
-                    float yVec = distancesToCurNode[adjNode] / 1000 * directionVec.second;
+                    float xVec = distancesToCurNode[adjNode] / 5000 * directionVec.first;
+                    float yVec = distancesToCurNode[adjNode] / 5000 * directionVec.second;
 
 
                     deltaX += xVec;
@@ -188,8 +188,8 @@ class ExpandingGraphManager
             for(Node<T> *adjacentNode : node->getAdjacentNodes()) {
                 if(positionedNodes[adjacentNode] == true) continue;
                 changedNewNode = true;
-                adjacentNode->setPosition(node->getPosition().first + getRandomBetween(-50, 50),
-                                          node->getPosition().second + getRandomBetween(-50, 50));
+                adjacentNode->setPosition(node->getPosition().first + getRandomBetween(-100, 100),
+                                          node->getPosition().second + getRandomBetween(-100, 100));
                 positionedNodes[adjacentNode] = true;
                 positionAllNodes(adjacentNode);
             }
