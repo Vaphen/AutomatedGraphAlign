@@ -1,13 +1,22 @@
 #ifndef EXPANDINGGRAPHMANAGER_H
 #define EXPANDINGGRAPHMANAGER_H
 
+#include <armadillo>
+#include "../Graph.hpp"
+
 /** \brief This class handles the automated expansion of nodes until they
  * reach a predefined distance between each other. Useful for graphical
  * display of graphs.
  */
-template <class T, bool DIRECTED = false>
+template<typename NODEVAL, typename EDGEVAL, bool isDirected = false,
+            template<typename> typename NODETYPE = Node,
+            template<typename, typename, bool> typename EDGETYPE = Edge>
 class ExpandingGraphManager
 {
+    using TypedGraph = Graph<NODEVAL, EDGEVAL, isDirected, NODETYPE, EDGETYPE>;
+    using NODE = NODETYPE<NODEVAL>;
+    using EDGE = EDGETYPE<EDGEVAL, NODE, isDirected>;
+
     public:
         /** \brief Constructor for initialization
          *
@@ -17,7 +26,7 @@ class ExpandingGraphManager
          * \param RADIUS unsigned the RADIUS of the nodes
          *
          */
-        ExpandingGraphManager(Graph<T, DIRECTED> &graph, unsigned WIDTH, unsigned HEIGHT, unsigned RADIUS) :
+        ExpandingGraphManager(TypedGraph &graph, unsigned WIDTH, unsigned HEIGHT, unsigned RADIUS) :
             graph(graph),
             WIDTH(WIDTH),
             HEIGHT(HEIGHT),
@@ -26,8 +35,8 @@ class ExpandingGraphManager
 
             if(graph.getNodes().size() == 0) return;
 
-            graph.getNodes().back()->setPosition(WIDTH / 2 - RADIUS, HEIGHT / 2 - RADIUS);
-            positionAllNodes(graph.getNodes().back());
+
+            positionNodes();
         }
 
         /*void positionNodes() {
@@ -42,54 +51,42 @@ class ExpandingGraphManager
          */
         void update()
         {
-            for(Node<T> *node : graph.getNodes()) {
+            for(NODE *node : graph.getNodes()) {
 
-                std::map<Node<T>*, float> distancesToCurNode = getDistancesToNode(node);
+                std::map<NODE*, double> distancesToCurNode = getDistancesToNode(node);
 
-                float deltaX = 0;
-                float deltaY = 0;
+                arma::vec deltaVec = {0, 0};
 
                 // rejection
                 for(auto nodeDistancePair : distancesToCurNode) {
-                    std::pair<float, float> directionVec = calculateDirectionVectorFromTo(nodeDistancePair.first, node);
+                    arma::vec directionVec = calculateDirectionVectorFromTo(nodeDistancePair.first, node);
 
-                    // prevent division by 0
-                    //float xBiggerZero =  * directionVec.first;
-                    //float yBiggerZero = nodeDistancePair.second * directionVec.second;
+                    // prevent division by 0 just in case
+                    double divisorBiggerZero =  std::pow(nodeDistancePair.second, 0.2);
 
-              //      if(xBiggerZero == 0 || yBiggerZero == 0) continue;
+                    if(divisorBiggerZero == 0 ) continue;
 
-
-                    deltaX += (1/std::pow(nodeDistancePair.second, 0.8)) * directionVec.first;
-                    deltaY += (1/std::pow(nodeDistancePair.second, 0.8)) * directionVec.second;
-
+                    deltaVec += (1/divisorBiggerZero) * directionVec;
 
                 }
-
                 //attraction
-                for(Node<T> *adjNode : node->getAdjacentNodes()) {
-                    std::pair<float, float> directionVec = calculateDirectionVectorFromTo(node, adjNode);
+                for(Node<NODEVAL> *adjPrimitiveNode : node->getAdjacentNodes()) {
+                    NODE *adjNode = dynamic_cast<NODE*>(adjPrimitiveNode);
+                    arma::vec directionVec = calculateDirectionVectorFromTo(node, adjNode);
 
 
-                    float xVec = distancesToCurNode[adjNode] / 5000 * directionVec.first;
-                    float yVec = distancesToCurNode[adjNode] / 5000 * directionVec.second;
-
-
-                    deltaX += xVec;
-                    deltaY += yVec;
+                    deltaVec += (distancesToCurNode[adjNode] / 10000) * directionVec;
 
                        // if the graph is directed, we have to implement the reversed attraction
                     // manually.
-                    if(DIRECTED == true) {
-                        auto adjacentPosition = adjNode->getPosition();
-                        float newAdjXPos = adjacentPosition.first + distancesToCurNode[adjNode] / 1000 * directionVec.first;
-                        float newAdjYPos = adjacentPosition.second + distancesToCurNode[adjNode] / 1000 * directionVec.second;
-                        adjNode->setPosition(newAdjXPos,
-                                                  newAdjYPos);
+                    if(isDirected == true) {
+                        arma::vec newPos = adjNode->getPosition() + (distancesToCurNode[adjNode] / 10000) * directionVec;
+                        adjNode->setPosition(newPos);
                     }
                 }
 
-                node->setPosition(node->getPosition().first + deltaX, node->getPosition().second + deltaY);
+
+                node->setPosition(deltaVec + node->getPosition());
             }
         }
 
@@ -97,7 +94,7 @@ class ExpandingGraphManager
         /**
          * Variables
          */
-        Graph<T, DIRECTED> &graph;
+        TypedGraph &graph;
         const unsigned WIDTH, HEIGHT, RADIUS;
 
 
@@ -117,19 +114,22 @@ class ExpandingGraphManager
         }
 
 
-        /** \brief Get the distance between two nodes.
+        /** \brief Get the euclidean distance between two nodes.
          *
          * \param node1 Node<T>* a pointer to the first node
          * \param node2 Node<T>* a pointer to the second node
          * \return unsigned the distance between the two nodes
          *
          */
-        float getDistance(Node<T> *node1, Node<T> *node2) {
-            float deltaX = std::abs(node1->getPosition().first - node2->getPosition().first);
-            float deltaY = std::abs(node1->getPosition().second - node2->getPosition().second);
+        double getDistance(NODE *node1, NODE *node2) {
+            arma::vec directionVec = node2->getPosition() - node1->getPosition();
+
+            // euclidean distance
+            double distance = 0.f;
+            directionVec.for_each([&distance](double x) {distance += x*x;});
 
             // Pythagoras
-            return std::sqrt(deltaX*deltaX + deltaY*deltaY);
+            return distance;
         }
 
 
@@ -137,27 +137,14 @@ class ExpandingGraphManager
          *
          * \param node1 Node<T>* the starting node
          * \param node2 Node<T>* the end node
-         * \return std::pair<float, float> a 2D-vector (pair) containing the normalized direction vector.
+         * \return std::pair<double, double> a 2D-vector (pair) containing the normalized direction vector.
          *
          */
-        std::pair<float, float> calculateDirectionVectorFromTo(Node<T> *node1, Node<T> *node2) {
-            float n1x = node1->getPosition().first;
-            float n1y = node1->getPosition().second;
-            float n2x = node2->getPosition().first;
-            float n2y = node2->getPosition().second;
+        arma::vec calculateDirectionVectorFromTo(NODE *node1, NODE *node2) {
 
-            float directionX = n2x - n1x;
-            float directionY = n2y - n1y;
+            arma::vec direction = node2->getPosition() - node1->getPosition();
+            return arma::normalise(direction);
 
-            // Pythagoras
-            float length = std::sqrt(directionX*directionX + directionY*directionY);
-
-            // Normalization of values
-            float normDirectionX = directionX / length;
-            float normDirectionY = directionY / length;
-
-
-            return std::pair<float, float>(normDirectionX, normDirectionY);
         }
 
 
@@ -167,9 +154,9 @@ class ExpandingGraphManager
          * \return std::map<Node<T>*, unsigned> a map with pointers to all other nodes as index and the distance
          *  as value.
          */
-        std::map<Node<T>*, float> getDistancesToNode(Node<T> *node) {
-            std::map<Node<T>*, float> distances;
-            for(Node<T> *curNode : graph.getNodes()) {
+        std::map<NODE*, double> getDistancesToNode(NODE *node) {
+            std::map<NODE*, double> distances;
+            for(NODE *curNode : graph.getNodes()) {
                 if(node == curNode) continue;
                 distances[curNode] = getDistance(node, curNode);
             }
@@ -177,23 +164,14 @@ class ExpandingGraphManager
         }
 
 
-        std::map<Node<sf::Color>*, bool> positionedNodes;
         /** \brief Set the position of all nodes. Outgoing from a given node,
          * the positions of the child nodes are recursively are set.
          * \param node Node<T>* the starting node. The position of this node must be already set.
          */
-        void positionAllNodes(Node<T> *node) {
-
-            bool changedNewNode = false;
-            for(Node<T> *adjacentNode : node->getAdjacentNodes()) {
-                if(positionedNodes[adjacentNode] == true) continue;
-                changedNewNode = true;
-                adjacentNode->setPosition(node->getPosition().first + getRandomBetween(-100, 100),
-                                          node->getPosition().second + getRandomBetween(-100, 100));
-                positionedNodes[adjacentNode] = true;
-                positionAllNodes(adjacentNode);
+        void positionNodes() {
+            for(NODE *node : graph.getNodes()) {
+                node->setPosition(getRandomBetween(0, WIDTH), getRandomBetween(0, HEIGHT));
             }
-            if(changedNewNode == false) return;
         }
 };
 

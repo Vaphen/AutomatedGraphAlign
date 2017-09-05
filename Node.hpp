@@ -17,13 +17,6 @@ class Node
 	static unsigned instanceCount; // initialized at the end of this file
 	unsigned privateId;
 
-	// position for gui use
-    std::pair<float, float> position;
-
-
-
-
-
 public:
 	/**
 	 * @brief Constructor for value only instantiation
@@ -38,6 +31,11 @@ public:
 	Node(T value, std::initializer_list<Node<T>*> nodes) : value(value), adjacentNodes(nodes), privateId(instanceCount) {
 		instanceCount++;
 	}
+
+	/**
+	 * @brief Virtual destructor
+	 */
+	virtual ~Node() { }
 
 	/**
 	 * @brief Add a new adjacent node to this one
@@ -70,14 +68,6 @@ public:
 	unsigned getId() {
 		return privateId;
 	}
-
-	std::pair<float, float> getPosition() {
-        return position;
-    }
-
-    void setPosition(float x, float y) {
-        this->position = std::pair<float, float>(x, y);
-    }
 
 	/**
 	 * @brief Overwritten operator used by std::cout to output nodes in a readable way

@@ -3,18 +3,19 @@
 
 #include "Node.hpp"
 
-template<typename T, bool directed = false>
+template<typename T, class NODE, bool directed = false>
 class Edge {
-  Node<T> *n1;
-  Node<T> *n2;
+  NODE *n1;
+  NODE *n2;
+  T value;
 public:
-  Edge(Node<T> *first, Node<T> *second) : n1(first), n2(second) { }
+  Edge(NODE *first, NODE *second) : n1(first), n2(second) { }
 
-  Node<T> *getFirstNode() {
+  NODE *getFirstNode() {
     return n1;
   }
 
-  Node<T> *getSecondNode() {
+  NODE *getSecondNode() {
     return n2;
   }
 
@@ -36,6 +37,14 @@ public:
         return e.getFirstNode()->getId() < n1->getId() && e.getSecondNode()->getId() < n2->getId() ||
                e.getFirstNode()->getId() < n2->getId() && e.getSecondNode()->getId() < n1->getId();
       }
+    }
+
+    T &getValue() const {
+        return value;
+    }
+
+    void setValue(T &val) {
+        this->value = val;
     }
 };
 

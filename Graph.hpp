@@ -8,16 +8,23 @@
 #include "Node.hpp"
 #include "Edge.hpp"
 
-template<typename T, bool isDirected = false>
+template<typename NODEVAL, typename EDGEVAL, bool isDirected = false,
+            template<typename> typename NODETYPE = Node,
+            template<typename, class, bool> typename EDGETYPE = Edge>
 class Graph
 {
-	// Vector containing pointers to all nodes of this graph
-	std::vector<Node<T>*> nodes;
-	std::vector<Edge<T>*> edges;
-public:
-	Graph<T, isDirected>() {};
+	using NODE = NODETYPE<NODEVAL>;
+	using EDGE = EDGETYPE<EDGEVAL, NODE, isDirected>;
 
-	Graph<T, isDirected>(Graph<T, isDirected> &copyGraph) {
+	// Vector containing pointers to all nodes of this graph
+	std::vector<NODE*> nodes;
+	std::vector<EDGE*> edges;
+public:
+	Graph<NODEVAL, EDGEVAL, isDirected, NODETYPE, EDGETYPE>() { };
+
+	Graph<NODEVAL, EDGEVAL, isDirected, NODETYPE, EDGETYPE>
+		(Graph<NODEVAL, EDGEVAL, isDirected, NODETYPE, EDGETYPE> &copyGraph)
+	{
 		nodes = copyGraph.getNodes();
 		edges = copyGraph.getEdges();
 	}
@@ -40,8 +47,8 @@ public:
 	 * @param value is the value of the node
 	 * @return a pointer to the new node
    */
-	Node<T> *addNode(T value) {
-		Node<T> *newNode = new Node<T>(value);
+	NODE* addNode(NODEVAL value) {
+		NODE* newNode = new NODE(value);
 		this->nodes.push_back(newNode);
 		return newNode;
 	}
@@ -52,8 +59,8 @@ public:
 	 * @param adjacentNodes an initializer list containing pointers to adjacent nodes
 	 * @return a pointer to the new node
    */
-	Node<T> *addNode(T value, std::initializer_list<Node<T>*> adjacentNodes) {
-		Node<T> *newNode = new Node<T>(value, adjacentNodes);
+	NODE* addNode(NODEVAL value, std::initializer_list<NODE*> adjacentNodes) {
+	 	NODE* newNode = new NODE(value, adjacentNodes);
 		this->nodes.push_back(newNode);
 		if(!isDirected) {
 			for(auto adjacentNode : adjacentNodes) {
@@ -61,7 +68,7 @@ public:
 			}
 		}
 		for(auto adjacentNode : adjacentNodes) {
-			edges.push_back(new Edge<T>(newNode, adjacentNode));
+			edges.push_back(new EDGE(newNode, adjacentNode));
 		}
 		return newNode;
 	}
@@ -71,8 +78,8 @@ public:
 	 * @param node a pointer to the node that should be added
 	 * @return false if the node is already a part of the graph, else true.
      */
-	bool addNode(Node<T> *node) {
-		auto isExistantIt = std::find_if(nodes.begin(), nodes.end(), [node](Node<T>* p) { return (*node == *p); });
+	bool addNode(NODE *node) {
+		auto isExistantIt = std::find_if(nodes.begin(), nodes.end(), [node](NODE* p) { return (*node == *p); });
 		if(isExistantIt == nodes.end()) {
 			this->nodes.push_back(node);
 			return true;
@@ -87,11 +94,11 @@ public:
  	 * @param directed must be true if the edge should be directed, else false
 	 * @return a pointer to the edge
 	 */
-	Edge<T> *addEdge(Node<T> *n1, Node<T> *n2, bool directed) {
-		Edge<T> *edge = new Edge<T>(n1, n2);
+	EDGE *addEdge(NODE *n1, NODE *n2, bool directed) {
+		EDGE *edge = new EDGE(n1, n2);
 		// check if the edge is already existant
 		// TODO: consider directed parameter
-		auto isExistantIt = std::find_if(edges.begin(), edges.end(), [edge](Edge<T>* p) { return (*edge == *p); });
+		auto isExistantIt = std::find_if(edges.begin(), edges.end(), [edge](EDGE* p) { return (*edge == *p); });
 
 		if(isExistantIt == edges.end()) {
 			edges.push_back(edge);
@@ -110,7 +117,7 @@ public:
 	 * @param n2 is the destination node
 	 * @return a pointer to the edge
      */
-	Edge<T> *addEdge(Node<T> *n1, Node<T> *n2) {
+	EDGE *addEdge(NODE *n1, NODE *n2) {
 		return addEdge(n1, n2, false);
 	}
 
@@ -118,7 +125,7 @@ public:
 	 * @brief Get all nodes of the graph
 	 * @return a vector containing pointers to all nodes of the graph
      */
-	std::vector<Node<T>*> getNodes() const {
+	std::vector<NODE*> getNodes() const {
 		return nodes;
 	}
 
@@ -126,11 +133,11 @@ public:
 	 * @brief Get all edges of the graph
 	 * @return a vector containing pointers to all edges of the graph
 	 */
-	std::vector<Edge<T>*> getEdges() const {
+	std::vector<EDGE*> getEdges() const {
 		return edges;
 	}
 
-	bool contains(Node<T> *node) {
+	bool contains(NODE *node) {
 		return std::find(nodes.begin(), nodes.end(), node) != nodes.end();
 	}
 

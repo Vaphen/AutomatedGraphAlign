@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1504528405 source:/home/john/Dropbox/Programme/SFMLTest/main.cpp
+1504615941 source:/home/john/Dropbox/Programme/SFMLTest/main.cpp
 	<SFML/Graphics.hpp>
 	<random>
 	<map>
@@ -8,9 +8,10 @@
 	<thread>
 	<chrono>
 	"Graph.hpp"
+	"GUINode.h"
 	"ExpandingGraphManager.h"
 
-1504182021 /home/john/Dropbox/Programme/SFMLTest/Graph.hpp
+1504538829 /home/john/Dropbox/Programme/SFMLTest/Graph.hpp
 	<vector>
 	<initializer_list>
 	<iostream>
@@ -18,18 +19,27 @@
 	"Node.hpp"
 	"Edge.hpp"
 
-1504294140 /home/john/Dropbox/Programme/SFMLTest/Node.hpp
+1504612584 /home/john/Dropbox/Programme/SFMLTest/Node.hpp
 	<vector>
 	<initializer_list>
 	<ostream>
 	<algorithm>
 
-1496580974 /home/john/Dropbox/Programme/SFMLTest/Edge.hpp
+1504538799 /home/john/Dropbox/Programme/SFMLTest/Edge.hpp
 	"Node.hpp"
 
-1504528315 /home/john/Dropbox/Programme/SFMLTest/include/ExpandingGraphManager.h
+1504535491 /home/john/Dropbox/Programme/SFMLTest/include/ExpandingGraphManager.h
+	<armadillo>
 
 1504441768 /home/john/Dropbox/Programme/SFMLTest/ExpandingGraphManager.h
 
-1504515670 /home/john/Dropbox/Programme/SFMLTest/include//ExpandingGraphManager.h
+1504615978 /home/john/Dropbox/Programme/SFMLTest/include//ExpandingGraphManager.h
+	<armadillo>
+	"../Graph.hpp"
+
+1504614952 /home/john/Dropbox/Programme/SFMLTest/include//GUINode.h
+	<armadillo>
+	"../Node.hpp"
+
+1504613029 source:/home/john/Dropbox/Programme/SFMLTest/src/GUINode.cpp
 
