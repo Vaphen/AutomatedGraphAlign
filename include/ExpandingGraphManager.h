@@ -55,7 +55,7 @@ class ExpandingGraphManager
 
                 std::map<NODE*, double> distancesToCurNode = getDistancesToNode(node);
 
-                arma::vec deltaVec = {0, 0};
+                arma::vec deltaVec = {0, 0, 0};
 
                 // rejection
                 for(auto nodeDistancePair : distancesToCurNode) {
@@ -170,7 +170,7 @@ class ExpandingGraphManager
          */
         void positionNodes() {
             for(NODE *node : graph.getNodes()) {
-                node->setPosition(getRandomBetween(0, WIDTH), getRandomBetween(0, HEIGHT));
+                node->setPosition(getRandomBetween(0, WIDTH), getRandomBetween(0, HEIGHT), getRandomBetween(0, WIDTH));
             }
         }
 };

@@ -23,9 +23,9 @@ class GUINode : public Node<T>
             return this->position;
         }
 
-        void setPosition(double x, double y)
+        void setPosition(double x, double y, double z)
         {
-            this->position = {x, y};
+            this->position = {x, y, z};
         }
 
         void setPosition(arma::vec vec)
