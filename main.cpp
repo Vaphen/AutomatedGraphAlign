@@ -82,16 +82,16 @@ int main()
     auto modeler = graph.addNode(sf::Color::Green, {tomcat, winery});
     auto vinothek = graph.addNode(sf::Color::Green, {tomcat, container});
 
-    openstack->setPathToImage("openstack_small.png");
-    ubuntu->setPathToImage("ubuntu_small.png");
-    java->setPathToImage("java_small.png");
-    tomcat->setPathToImage("tomcat_small.png");
-    wso2bp2->setPathToImage("gear_small.png");
-    container->setPathToImage("container_small.png");
-    admin->setPathToImage("tosca_small.png");
-    winery->setPathToImage("winery_small.jpg");
-    modeler->setPathToImage("topology_small.png");
-    vinothek->setPathToImage("vinothek_small.png");
+    openstack->setPathToImage("image/openstack_small.png");
+    ubuntu->setPathToImage("image/ubuntu_small.png");
+    java->setPathToImage("image/java_small.png");
+    tomcat->setPathToImage("image/tomcat_small.png");
+    wso2bp2->setPathToImage("image/gear_small.png");
+    container->setPathToImage("image/container_small.png");
+    admin->setPathToImage("image/tosca_small.png");
+    winery->setPathToImage("image/winery_small.jpg");
+    modeler->setPathToImage("image/topology_small.png");
+    vinothek->setPathToImage("image/vinothek_small.png");
     /*auto a = graph.addNode(sf::Color::Blue);
     auto b = graph.addNode(sf::Color::Blue);
     auto c = graph.addNode(sf::Color::Blue);
@@ -133,7 +133,7 @@ int main()
                 if(event.mouseButton.button == sf::Mouse::Right) {
                     if(!graph.removeNode(addedNode)) {
                         addedNode = graph.addNode(sf::Color(255, 255, 255), {admin, winery, modeler, vinothek});
-                        addedNode->setPathToImage("watchdog_small.png");
+                        addedNode->setPathToImage("image/watchdog_small.png");
                         addedNode->setPosition(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y, 0);
                     }
 
