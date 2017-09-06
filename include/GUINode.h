@@ -33,9 +33,18 @@ class GUINode : public Node<T>
             this->position = vec;
         }
 
+        void setPathToImage(std::string path) {
+            this->pathToImage = path;
+        }
+
+        std::string getPathToImage() const {
+            return this->pathToImage;
+        }
+
 
     private:
         arma::vec position;
+        std::string pathToImage;
 };
 
 #endif // GUINODE_H

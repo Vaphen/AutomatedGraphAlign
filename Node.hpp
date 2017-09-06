@@ -1,17 +1,18 @@
 #ifndef __NODE_H_
 #define __NODE_H_
 
-#include <vector>
+#include <set>
 #include <initializer_list>
 #include <ostream>
 #include <algorithm>
+
 
 template<class T>
 class Node
 {
     // node members
 	T value;
-	std::vector<Node<T>*> adjacentNodes;
+	std::set<Node<T>*> adjacentNodes;
 
 	// unique ids
 	static unsigned instanceCount; // initialized at the end of this file
@@ -42,7 +43,22 @@ public:
 	 * @param a pointer to the new adjacent node
      */
 	void addAdjacentNode(Node<T> *node) {
-		adjacentNodes.push_back(node);
+		adjacentNodes.insert(node);
+	}
+
+	void addAdjacentNode(std::initializer_list<Node<T>*> nodes) {
+	    for(Node<T> *node : nodes) {
+            adjacentNodes.insert(node);
+	    }
+	}
+
+	bool removeAdjacentNode(Node<T> *delnode) {
+	    auto delIt = std::find(adjacentNodes.begin(), adjacentNodes.end(), delnode);
+        if(delIt != adjacentNodes.end()) {
+            adjacentNodes.erase(delIt);
+            return true;
+        }
+        return false;
 	}
 
 	/**
@@ -57,7 +73,7 @@ public:
 	 * @brief get all adjacent nodes
 	 * @return a reference to a vector containing pointers to all adjacent nodes
      */
-	std::vector<Node<T>*> &getAdjacentNodes() {
+	std::set<Node<T>*> &getAdjacentNodes() {
 		return adjacentNodes;
 	}
 

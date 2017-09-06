@@ -20,7 +20,7 @@ class Graph
 	std::vector<NODE*> nodes;
 	std::vector<EDGE*> edges;
 public:
-	Graph<NODEVAL, EDGEVAL, isDirected, NODETYPE, EDGETYPE>() { };
+	Graph<NODEVAL, EDGEVAL, isDirected, NODETYPE, EDGETYPE>() = default;
 
 	Graph<NODEVAL, EDGEVAL, isDirected, NODETYPE, EDGETYPE>
 		(Graph<NODEVAL, EDGEVAL, isDirected, NODETYPE, EDGETYPE> &copyGraph)
@@ -139,6 +139,18 @@ public:
 
 	bool contains(NODE *node) {
 		return std::find(nodes.begin(), nodes.end(), node) != nodes.end();
+	}
+
+	bool removeNode(NODE *delnode) {
+        auto it = std::find(nodes.begin(), nodes.end(), delnode);
+        if(it != nodes.end()) {
+            nodes.erase(it);
+            for(auto node : nodes) {
+               node->removeAdjacentNode(delnode);
+            }
+            return true;
+        }
+        return false;
 	}
 
 };

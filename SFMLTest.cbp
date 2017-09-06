@@ -14,9 +14,10 @@
 				<Compiler>
 					<Add option="-std=c++14" />
 					<Add option="-g" />
+					<Add directory="/home/john/Dropbox/Programme/SFMLTest/include/" />
 				</Compiler>
 				<Linker>
-					<Add option="-lsfml-graphics -lsfml-window -lsfml-system" />
+					<Add option="-lsfml-graphics -lsfml-window -lsfml-system -larmadillo" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -39,7 +40,10 @@
 		<Unit filename="Edge.hpp" />
 		<Unit filename="Graph.hpp" />
 		<Unit filename="Node.hpp" />
+		<Unit filename="include/ExpandingGraphManager.h" />
+		<Unit filename="include/GUINode.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="src/GUINode.cpp" />
 		<Extensions>
 			<envvars />
 			<code_completion />

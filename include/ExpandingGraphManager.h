@@ -51,6 +51,7 @@ class ExpandingGraphManager
          */
         void update()
         {
+            std::map<NODE*, arma::vec> newPositions;
             for(NODE *node : graph.getNodes()) {
 
                 std::map<NODE*, double> distancesToCurNode = getDistancesToNode(node);
@@ -62,7 +63,7 @@ class ExpandingGraphManager
                     arma::vec directionVec = calculateDirectionVectorFromTo(nodeDistancePair.first, node);
 
                     // prevent division by 0 just in case
-                    double divisorBiggerZero =  std::pow(nodeDistancePair.second, 0.2);
+                    double divisorBiggerZero =  std::pow(nodeDistancePair.second, 0.1);
 
                     if(divisorBiggerZero == 0 ) continue;
 
@@ -75,18 +76,68 @@ class ExpandingGraphManager
                     arma::vec directionVec = calculateDirectionVectorFromTo(node, adjNode);
 
 
-                    deltaVec += (distancesToCurNode[adjNode] / 10000) * directionVec;
+                    deltaVec += (distancesToCurNode[adjNode] / attractionFactor) * directionVec;
 
                        // if the graph is directed, we have to implement the reversed attraction
                     // manually.
                     if(isDirected == true) {
-                        arma::vec newPos = adjNode->getPosition() + (distancesToCurNode[adjNode] / 10000) * directionVec;
+                        arma::vec newPos = adjNode->getPosition() + (distancesToCurNode[adjNode] / attractionFactor) * directionVec;
                         adjNode->setPosition(newPos);
                     }
                 }
 
 
-                node->setPosition(deltaVec + node->getPosition());
+                arma::vec newPosition = deltaVec + node->getPosition();
+
+              /*  newPosition.at(0) -= WIDTH / 2;
+                newPosition.at(2) -= WIDTH / 2;
+
+                arma::vec turnedVec = turnVectorXDegree(newPosition, 0.01);
+
+                turnedVec.at(0) += WIDTH / 2;
+                turnedVec.at(2) += WIDTH / 2;
+
+                turnedVec.at(1) -= WIDTH / 2;
+                turnedVec.at(2) -= WIDTH / 2;
+                turnedVec = turnVectorYDegree(turnedVec, 0.01);
+                turnedVec.at(1) += WIDTH / 2;
+                turnedVec.at(2) += WIDTH / 2;*/
+
+                newPositions[node] = newPosition;
+            }
+
+            for(auto x : newPositions) {
+                x.first->setPosition(x.second);
+            }
+        }
+
+        void setDeltaZ(int delta) {
+            if(attractionFactor + delta <= 0) return;
+
+            attractionFactor += delta;
+        }
+
+        void turnGraphYForDegree(float degree) {
+            for(auto node : graph.getNodes()) {
+                arma::vec posVec = node->getPosition();
+                posVec.at(0) -= WIDTH / 2;
+                posVec.at(2) -= WIDTH / 2;
+                arma::vec turnedVec = turnVectorYDegree(posVec, degree);
+                turnedVec.at(0) += WIDTH / 2;
+                turnedVec.at(2) += WIDTH / 2;
+                node->setPosition(turnedVec);
+            }
+        }
+
+        void turnGraphXForDegree(float degree) {
+            for(auto node : graph.getNodes()) {
+                arma::vec posVec = node->getPosition();
+                posVec.at(1) -= WIDTH / 2;
+                posVec.at(2) -= WIDTH / 2;
+                arma::vec turnedVec = turnVectorXDegree(posVec, degree);
+                turnedVec.at(1) += WIDTH / 2;
+                turnedVec.at(2) += WIDTH / 2;
+                node->setPosition(turnedVec);
             }
         }
 
@@ -96,6 +147,32 @@ class ExpandingGraphManager
          */
         TypedGraph &graph;
         const unsigned WIDTH, HEIGHT, RADIUS;
+        int attractionFactor = 10000;
+
+
+        arma::vec turnVectorYDegree(arma::vec &pos, double degree) {
+            arma::mat rotationMatrix = { { std::cos(degree), 0, std::sin(degree) },
+                                         { 0, 1, 0 },
+                                         { -std::sin(degree), 0, std::cos(degree) } };
+
+            return rotationMatrix * pos;
+        }
+
+        arma::vec turnVectorXDegree(arma::vec &pos, double degree) {
+            arma::mat rotationMatrix = { { 1, 0, 0 },
+                                         { 0, std::cos(degree), -std::sin(degree) },
+                                         { 0, std::sin(degree), std::cos(degree) } };
+
+            return rotationMatrix * pos;
+        }
+
+        arma::vec turnVectorZDegree(arma::vec &pos, double degree) {
+            arma::mat rotationMatrix = { { std::cos(degree), -std::sin(degree), 0 },
+                                         { std::sin(degree), std::cos(degree), 0 },
+                                         { 0, 0, 1 } };
+
+            return rotationMatrix * pos;
+        }
 
 
         /** \brief Get a random value including both sides of the given range.
@@ -170,7 +247,7 @@ class ExpandingGraphManager
          */
         void positionNodes() {
             for(NODE *node : graph.getNodes()) {
-                node->setPosition(getRandomBetween(0, WIDTH), getRandomBetween(0, HEIGHT), getRandomBetween(0, WIDTH));
+                node->setPosition(getRandomBetween(WIDTH / 2 - 100, WIDTH / 2 + 100), getRandomBetween(HEIGHT / 2 - 100, HEIGHT / 2 + 100), getRandomBetween(WIDTH / 2 - 100, WIDTH / 2 + 100));
             }
         }
 };

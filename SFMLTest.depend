@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1504616097 source:/home/john/Dropbox/Programme/SFMLTest/main.cpp
+1504701234 source:/home/john/Dropbox/Programme/SFMLTest/main.cpp
 	<SFML/Graphics.hpp>
 	<random>
 	<map>
@@ -11,7 +11,7 @@
 	"GUINode.h"
 	"ExpandingGraphManager.h"
 
-1504538829 /home/john/Dropbox/Programme/SFMLTest/Graph.hpp
+1504700658 /home/john/Dropbox/Programme/SFMLTest/Graph.hpp
 	<vector>
 	<initializer_list>
 	<iostream>
@@ -19,8 +19,8 @@
 	"Node.hpp"
 	"Edge.hpp"
 
-1504612584 /home/john/Dropbox/Programme/SFMLTest/Node.hpp
-	<vector>
+1504700670 /home/john/Dropbox/Programme/SFMLTest/Node.hpp
+	<set>
 	<initializer_list>
 	<ostream>
 	<algorithm>
@@ -33,11 +33,11 @@
 
 1504441768 /home/john/Dropbox/Programme/SFMLTest/ExpandingGraphManager.h
 
-1504616721 /home/john/Dropbox/Programme/SFMLTest/include//ExpandingGraphManager.h
+1504701630 /home/john/Dropbox/Programme/SFMLTest/include//ExpandingGraphManager.h
 	<armadillo>
 	"../Graph.hpp"
 
-1504616494 /home/john/Dropbox/Programme/SFMLTest/include//GUINode.h
+1504698371 /home/john/Dropbox/Programme/SFMLTest/include//GUINode.h
 	<armadillo>
 	"../Node.hpp"
 
