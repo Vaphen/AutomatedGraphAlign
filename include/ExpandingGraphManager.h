@@ -2,7 +2,12 @@
 #define EXPANDINGGRAPHMANAGER_H
 
 #include <armadillo>
+#include <memory>
+#include <cmath>
+#include <map>
+#include <random>
 #include "../Graph.hpp"
+#include "ArmadilloUtils.hpp"
 
 /** \brief This class handles the automated expansion of nodes until they
  * reach a predefined distance between each other. Useful for graphical
@@ -30,6 +35,7 @@ class ExpandingGraphManager
             graph(graph),
             WIDTH(WIDTH),
             HEIGHT(HEIGHT),
+            DEPTH(WIDTH),
             RADIUS(RADIUS)
         {
 
@@ -39,22 +45,16 @@ class ExpandingGraphManager
             positionNodes();
         }
 
-        /*void positionNodes() {
-            for(auto node : graph.getNodes()) {
-                node->setPosition(getRandomBetween(0, WIDTH), getRandomBetween(0, HEIGHT));
-            }
-        }*/
-
         /** \brief Update the positions of all nodes. The update of the position is just a small change
          * which is useful for animations; however, this function must be called many times to get the
          * optimal result.
          */
         void update()
         {
-            std::map<NODE*, arma::vec> newPositions;
-            for(NODE *node : graph.getNodes()) {
 
-                std::map<NODE*, double> distancesToCurNode = getDistancesToNode(node);
+            for(auto node : graph.getNodes()) {
+
+                std::map<std::shared_ptr<NODE>, double> distancesToCurNode = getDistancesToNode(node);
 
                 arma::vec deltaVec = {0, 0, 0};
 
@@ -63,81 +63,72 @@ class ExpandingGraphManager
                     arma::vec directionVec = calculateDirectionVectorFromTo(nodeDistancePair.first, node);
 
                     // prevent division by 0 just in case
-                    double divisorBiggerZero =  std::pow(nodeDistancePair.second, 0.1);
+                    if(nodeDistancePair.second == 0) continue;
 
-                    if(divisorBiggerZero == 0 ) continue;
-
-                    deltaVec += (1/divisorBiggerZero) * directionVec;
+                    deltaVec += (std::pow(rejectionFactor, 2)/nodeDistancePair.second) * directionVec;
 
                 }
+
+
                 //attraction
-                for(Node<NODEVAL> *adjPrimitiveNode : node->getAdjacentNodes()) {
-                    NODE *adjNode = dynamic_cast<NODE*>(adjPrimitiveNode);
+                for(auto adjPrimitiveNode : node->getAdjacentNodes()) {
+                    // cast needed because nodes just save Node-class pointer for adjacent nodes
+                    std::shared_ptr<NODE> adjNode = std::dynamic_pointer_cast<NODE>(adjPrimitiveNode);
                     arma::vec directionVec = calculateDirectionVectorFromTo(node, adjNode);
 
 
-                    deltaVec += (distancesToCurNode[adjNode] / attractionFactor) * directionVec;
+                    deltaVec += std::pow(distancesToCurNode[adjNode], 0.5) * directionVec;
 
-                       // if the graph is directed, we have to implement the reversed attraction
+                    // if the graph is directed, we have to implement the reversed attraction
                     // manually.
                     if(isDirected == true) {
-                        arma::vec newPos = adjNode->getPosition() + (distancesToCurNode[adjNode] / attractionFactor) * directionVec;
+                        arma::vec newPos = adjNode->getPosition() + std::pow(distancesToCurNode[adjNode], 0.5) * directionVec;
                         adjNode->setPosition(newPos);
                     }
                 }
 
+                node->setPosition(deltaVec + node->getPosition());
 
-                arma::vec newPosition = deltaVec + node->getPosition();
 
-              /*  newPosition.at(0) -= WIDTH / 2;
-                newPosition.at(2) -= WIDTH / 2;
-
-                arma::vec turnedVec = turnVectorXDegree(newPosition, 0.01);
-
-                turnedVec.at(0) += WIDTH / 2;
-                turnedVec.at(2) += WIDTH / 2;
-
-                turnedVec.at(1) -= WIDTH / 2;
-                turnedVec.at(2) -= WIDTH / 2;
-                turnedVec = turnVectorYDegree(turnedVec, 0.01);
-                turnedVec.at(1) += WIDTH / 2;
-                turnedVec.at(2) += WIDTH / 2;*/
-
-                newPositions[node] = newPosition;
             }
 
-            for(auto x : newPositions) {
-                x.first->setPosition(x.second);
-            }
         }
 
-        void setDeltaZ(int delta) {
-            if(attractionFactor + delta <= 0) return;
-
-            attractionFactor += delta;
+        /** \brief adjust the attraction factor for all nodes
+         * \param delta the delta of the attraction factor
+         */
+        void adjustRejectionFactor(double delta) {
+            rejectionFactor += delta;
         }
 
-        void turnGraphYForDegree(float degree) {
+        /** \brief turn the whole graph around the Y-axis
+         * \param degree the degree the graph should be turned
+         */
+        void turnGraphYForDegree(double degree) {
             for(auto node : graph.getNodes()) {
                 arma::vec posVec = node->getPosition();
                 posVec.at(0) -= WIDTH / 2;
-                posVec.at(2) -= WIDTH / 2;
-                arma::vec turnedVec = turnVectorYDegree(posVec, degree);
-                turnedVec.at(0) += WIDTH / 2;
-                turnedVec.at(2) += WIDTH / 2;
-                node->setPosition(turnedVec);
+                posVec.at(2) -= DEPTH / 2;
+                posVec = ArmaUtils::turnVectorYDegree(posVec, degree);
+                posVec.at(0) += WIDTH / 2;
+                posVec.at(2) += DEPTH / 2;
+                node->setPosition(posVec);
             }
         }
 
-        void turnGraphXForDegree(float degree) {
+
+        /** \brief turn the whole graph around the X-axis
+         * \param degree the degree the graph should be turned
+         */
+        void turnGraphXForDegree(double degree) {
             for(auto node : graph.getNodes()) {
                 arma::vec posVec = node->getPosition();
                 posVec.at(1) -= WIDTH / 2;
-                posVec.at(2) -= WIDTH / 2;
-                arma::vec turnedVec = turnVectorXDegree(posVec, degree);
-                turnedVec.at(1) += WIDTH / 2;
-                turnedVec.at(2) += WIDTH / 2;
-                node->setPosition(turnedVec);
+                posVec.at(2) -= DEPTH / 2;
+                posVec = ArmaUtils::turnVectorXDegree(posVec, degree);
+                posVec.at(1) += WIDTH / 2;
+                posVec.at(2) += DEPTH / 2;
+                node->setPosition(posVec);
             }
         }
 
@@ -146,34 +137,8 @@ class ExpandingGraphManager
          * Variables
          */
         TypedGraph &graph;
-        const unsigned WIDTH, HEIGHT, RADIUS;
-        int attractionFactor = 10000;
-
-
-        arma::vec turnVectorYDegree(arma::vec &pos, double degree) {
-            arma::mat rotationMatrix = { { std::cos(degree), 0, std::sin(degree) },
-                                         { 0, 1, 0 },
-                                         { -std::sin(degree), 0, std::cos(degree) } };
-
-            return rotationMatrix * pos;
-        }
-
-        arma::vec turnVectorXDegree(arma::vec &pos, double degree) {
-            arma::mat rotationMatrix = { { 1, 0, 0 },
-                                         { 0, std::cos(degree), -std::sin(degree) },
-                                         { 0, std::sin(degree), std::cos(degree) } };
-
-            return rotationMatrix * pos;
-        }
-
-        arma::vec turnVectorZDegree(arma::vec &pos, double degree) {
-            arma::mat rotationMatrix = { { std::cos(degree), -std::sin(degree), 0 },
-                                         { std::sin(degree), std::cos(degree), 0 },
-                                         { 0, 0, 1 } };
-
-            return rotationMatrix * pos;
-        }
-
+        const unsigned WIDTH, HEIGHT, DEPTH, RADIUS; // depth is currently set to width; can be changed if needed
+        double rejectionFactor = 10.0;
 
         /** \brief Get a random value including both sides of the given range.
          *
@@ -198,15 +163,11 @@ class ExpandingGraphManager
          * \return unsigned the distance between the two nodes
          *
          */
-        double getDistance(NODE *node1, NODE *node2) {
+        double getDistance(std::shared_ptr<NODE> node1, std::shared_ptr<NODE> node2) {
             arma::vec directionVec = node2->getPosition() - node1->getPosition();
 
             // euclidean distance
-            double distance = 0.f;
-            directionVec.for_each([&distance](double x) {distance += x*x;});
-
-            // Pythagoras
-            return distance;
+            return ArmaUtils::getLength(directionVec);
         }
 
 
@@ -217,11 +178,8 @@ class ExpandingGraphManager
          * \return std::pair<double, double> a 2D-vector (pair) containing the normalized direction vector.
          *
          */
-        arma::vec calculateDirectionVectorFromTo(NODE *node1, NODE *node2) {
-
-            arma::vec direction = node2->getPosition() - node1->getPosition();
-            return arma::normalise(direction);
-
+        arma::vec calculateDirectionVectorFromTo(std::shared_ptr<NODE> node1, std::shared_ptr<NODE> node2) {
+            return arma::normalise(node2->getPosition() - node1->getPosition());
         }
 
 
@@ -231,9 +189,9 @@ class ExpandingGraphManager
          * \return std::map<Node<T>*, unsigned> a map with pointers to all other nodes as index and the distance
          *  as value.
          */
-        std::map<NODE*, double> getDistancesToNode(NODE *node) {
-            std::map<NODE*, double> distances;
-            for(NODE *curNode : graph.getNodes()) {
+        std::map<std::shared_ptr<NODE>, double> getDistancesToNode(std::shared_ptr<NODE> node) {
+            std::map<std::shared_ptr<NODE>, double> distances;
+            for(std::shared_ptr<NODE> curNode : graph.getNodes()) {
                 if(node == curNode) continue;
                 distances[curNode] = getDistance(node, curNode);
             }
@@ -246,8 +204,10 @@ class ExpandingGraphManager
          * \param node Node<T>* the starting node. The position of this node must be already set.
          */
         void positionNodes() {
-            for(NODE *node : graph.getNodes()) {
-                node->setPosition(getRandomBetween(WIDTH / 2 - 100, WIDTH / 2 + 100), getRandomBetween(HEIGHT / 2 - 100, HEIGHT / 2 + 100), getRandomBetween(WIDTH / 2 - 100, WIDTH / 2 + 100));
+            for(std::shared_ptr<NODE> node : graph.getNodes()) {
+                node->setPosition(getRandomBetween(WIDTH / 2 - 100, WIDTH / 2 + 100),
+                                  getRandomBetween(HEIGHT / 2 - 100, HEIGHT / 2 + 100),
+                                  getRandomBetween(DEPTH / 2 - 100, DEPTH / 2 + 100));
             }
         }
 };

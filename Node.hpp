@@ -3,7 +3,6 @@
 
 #include <set>
 #include <initializer_list>
-#include <ostream>
 #include <algorithm>
 
 
@@ -12,7 +11,7 @@ class Node
 {
     // node members
 	T value;
-	std::set<Node<T>*> adjacentNodes;
+	std::set<std::shared_ptr<Node<T> > > adjacentNodes;
 
 	// unique ids
 	static unsigned instanceCount; // initialized at the end of this file
@@ -29,30 +28,37 @@ public:
 	/**
 	 * @brief Constructor for value and adjacent node instantiation
      */
-	Node(T value, std::initializer_list<Node<T>*> nodes) : value(value), adjacentNodes(nodes), privateId(instanceCount) {
+	Node(T value, std::initializer_list<std::shared_ptr<Node<T> > > nodes) : value(value), adjacentNodes(nodes), privateId(instanceCount) {
 		instanceCount++;
 	}
 
 	/**
 	 * @brief Virtual destructor
 	 */
-	virtual ~Node() { }
+	virtual ~Node() = default;
 
 	/**
 	 * @brief Add a new adjacent node to this one
 	 * @param a pointer to the new adjacent node
      */
-	void addAdjacentNode(Node<T> *node) {
+	void addAdjacentNode(std::shared_ptr<Node<T> >node) {
 		adjacentNodes.insert(node);
 	}
 
-	void addAdjacentNode(std::initializer_list<Node<T>*> nodes) {
+    /** \brief Add multiple adjacent nodes to this one
+     * \param nodes an initializer list containing all new adjacent nodes
+     */
+	void addAdjacentNodes(std::initializer_list<Node<T>*> nodes) {
 	    for(Node<T> *node : nodes) {
             adjacentNodes.insert(node);
 	    }
 	}
 
-	bool removeAdjacentNode(Node<T> *delnode) {
+    /** \brief Remove an adjacent node
+     * \param delnode a pointer to the node that should be deleted
+     * \return bool true if deletion was successful, else false.
+     */
+	bool removeAdjacentNode(std::shared_ptr<Node<T> > delnode) {
 	    auto delIt = std::find(adjacentNodes.begin(), adjacentNodes.end(), delnode);
         if(delIt != adjacentNodes.end()) {
             adjacentNodes.erase(delIt);
@@ -73,7 +79,7 @@ public:
 	 * @brief get all adjacent nodes
 	 * @return a reference to a vector containing pointers to all adjacent nodes
      */
-	std::set<Node<T>*> &getAdjacentNodes() {
+	std::set<std::shared_ptr<Node<T> > > &getAdjacentNodes() {
 		return adjacentNodes;
 	}
 
@@ -98,6 +104,8 @@ public:
 	    return os;
 	}
 
+    /** \brief Overwritten equals operator; two nodes are equal if their id is equal.
+     */
 	bool operator==(Node &n) {
 		return n.getId() == privateId;
 	}

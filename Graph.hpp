@@ -3,8 +3,8 @@
 
 #include <vector>
 #include <initializer_list>
-#include <iostream>
 #include <algorithm>
+#include <memory>
 #include "Node.hpp"
 #include "Edge.hpp"
 
@@ -16,41 +16,21 @@ class Graph
 	using NODE = NODETYPE<NODEVAL>;
 	using EDGE = EDGETYPE<EDGEVAL, NODE, isDirected>;
 
-	// Vector containing pointers to all nodes of this graph
-	std::vector<NODE*> nodes;
-	std::vector<EDGE*> edges;
+	// Vectors containing pointers to all nodes and edges of this graph
+	std::vector<std::shared_ptr<NODE> > nodes;
+	std::vector<std::shared_ptr<EDGE> > edges;
 public:
+    // default constructor
 	Graph<NODEVAL, EDGEVAL, isDirected, NODETYPE, EDGETYPE>() = default;
-
-	Graph<NODEVAL, EDGEVAL, isDirected, NODETYPE, EDGETYPE>
-		(Graph<NODEVAL, EDGEVAL, isDirected, NODETYPE, EDGETYPE> &copyGraph)
-	{
-		nodes = copyGraph.getNodes();
-		edges = copyGraph.getEdges();
-	}
-
-	/**
-	 * @brief Destructor deleting all node allocations
-   */
-	~Graph() {
-		for(auto node : nodes) {
-			delete node;
-		}
-
-		for(auto edge : edges) {
-			delete edge;
-		}
-	}
 
 	/**
 	 * @brief Add a new node with a given value to the graph.
 	 * @param value is the value of the node
 	 * @return a pointer to the new node
-   */
-	NODE* addNode(NODEVAL value) {
-		NODE* newNode = new NODE(value);
-		this->nodes.push_back(newNode);
-		return newNode;
+     */
+	std::shared_ptr<NODE> addNode(NODEVAL value) {
+		this->nodes.emplace_back(new NODE(value));
+		return this->nodes.back();
 	}
 
 	/**
@@ -58,9 +38,9 @@ public:
 	 * @param value is the value of the node
 	 * @param adjacentNodes an initializer list containing pointers to adjacent nodes
 	 * @return a pointer to the new node
-   */
-	NODE* addNode(NODEVAL value, std::initializer_list<NODE*> adjacentNodes) {
-	 	NODE* newNode = new NODE(value, adjacentNodes);
+     */
+	std::shared_ptr<NODE> addNode(NODEVAL value, std::initializer_list<std::shared_ptr<NODE>> adjacentNodes) {
+	 	std::shared_ptr<NODE> newNode(new NODE(value, adjacentNodes));
 		this->nodes.push_back(newNode);
 		if(!isDirected) {
 			for(auto adjacentNode : adjacentNodes) {
@@ -68,7 +48,7 @@ public:
 			}
 		}
 		for(auto adjacentNode : adjacentNodes) {
-			edges.push_back(new EDGE(newNode, adjacentNode));
+			edges.emplace_back(new EDGE(newNode, adjacentNode));
 		}
 		return newNode;
 	}
@@ -78,8 +58,8 @@ public:
 	 * @param node a pointer to the node that should be added
 	 * @return false if the node is already a part of the graph, else true.
      */
-	bool addNode(NODE *node) {
-		auto isExistantIt = std::find_if(nodes.begin(), nodes.end(), [node](NODE* p) { return (*node == *p); });
+	bool addNode(std::shared_ptr<NODE> node) {
+		auto isExistantIt = std::find_if(nodes.begin(), nodes.end(), [node](std::shared_ptr<NODE> p) { return (*node == *p); });
 		if(isExistantIt == nodes.end()) {
 			this->nodes.push_back(node);
 			return true;
@@ -89,16 +69,16 @@ public:
 
 	/**
 	 * @brief Add a new edge between two given nodes if not existant
-	 * @param n1 is the target node
-	 * @param n2 is the destination node
+	 * @param n1 is a pointer to the target node
+	 * @param n2 is a pointer to the destination node
  	 * @param directed must be true if the edge should be directed, else false
 	 * @return a pointer to the edge
 	 */
-	EDGE *addEdge(NODE *n1, NODE *n2, bool directed) {
-		EDGE *edge = new EDGE(n1, n2);
+	std::shared_ptr<EDGE> addEdge(std::shared_ptr<NODE> n1, std::shared_ptr<NODE> n2, bool directed) {
+		std::shared_ptr<EDGE> edge(new EDGE(n1, n2));
 		// check if the edge is already existant
 		// TODO: consider directed parameter
-		auto isExistantIt = std::find_if(edges.begin(), edges.end(), [edge](EDGE* p) { return (*edge == *p); });
+		auto isExistantIt = std::find_if(edges.begin(), edges.end(), [edge](std::shared_ptr<EDGE> p) { return (*edge == *p); });
 
 		if(isExistantIt == edges.end()) {
 			edges.push_back(edge);
@@ -112,12 +92,12 @@ public:
 
 
 	/**
-	 * @brief Add a new, undirected edge between two given nodes if not existant
-	 * @param n1 is the target node
-	 * @param n2 is the destination node
+	 * @brief Add a new, undirected edge between two given nodes if not existent
+	 * @param n1 is a pointer to the target node
+	 * @param n2 is a pointer to the destination node
 	 * @return a pointer to the edge
      */
-	EDGE *addEdge(NODE *n1, NODE *n2) {
+	std::shared_ptr<NODE> addEdge(std::shared_ptr<NODE> n1, std::shared_ptr<NODE> n2) {
 		return addEdge(n1, n2, false);
 	}
 
@@ -125,7 +105,7 @@ public:
 	 * @brief Get all nodes of the graph
 	 * @return a vector containing pointers to all nodes of the graph
      */
-	std::vector<NODE*> getNodes() const {
+	std::vector<std::shared_ptr<NODE>> getNodes() const {
 		return nodes;
 	}
 
@@ -133,15 +113,25 @@ public:
 	 * @brief Get all edges of the graph
 	 * @return a vector containing pointers to all edges of the graph
 	 */
-	std::vector<EDGE*> getEdges() const {
+	std::vector<std::shared_ptr<EDGE> > getEdges() const {
 		return edges;
 	}
 
-	bool contains(NODE *node) {
+    /** \brief Check if a given node is contained in the graph
+     * \param node a pointer to the node that should be checked
+     * \return bool true if the node is contained in the graph, else false
+     *
+     */
+	bool contains(std::shared_ptr<NODE> node) {
 		return std::find(nodes.begin(), nodes.end(), node) != nodes.end();
 	}
 
-	bool removeNode(NODE *delnode) {
+
+    /** \brief Remove a given node from the graph.
+     * \param delnode a pointer to the node that should be deleted.
+     * \return true if the node was existent in the graph and removed successful, else false.
+     */
+	bool removeNode(std::shared_ptr<NODE> delnode) {
         auto it = std::find(nodes.begin(), nodes.end(), delnode);
         if(it != nodes.end()) {
             nodes.erase(it);

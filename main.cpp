@@ -15,7 +15,6 @@
 #define RADIUS 10
 
 sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Self expanding graph");
-sf::CircleShape shape(RADIUS);
 
 template<typename NODEVAL, typename EDGEVAL, bool isDirected = false,
             template<typename> typename NODETYPE = Node,
@@ -23,11 +22,10 @@ template<typename NODEVAL, typename EDGEVAL, bool isDirected = false,
 void drawGraph(Graph<NODEVAL, EDGEVAL, isDirected, NODETYPE, EDGETYPE> &graph) {
 
     using NODE = NODETYPE<NODEVAL>;
-    using EDGE = EDGETYPE<EDGEVAL, NODE, isDirected>;
 
-    for(NODE *node : graph.getNodes()) {
-        for(Node<sf::Color>* adjacentNode : node->getAdjacentNodes()) {
-            GUINode<sf::Color> *adjacentGUINode = dynamic_cast<GUINode<sf::Color>*>(adjacentNode);
+    for(std::shared_ptr<NODE> node : graph.getNodes()) {
+        for(std::shared_ptr<Node<sf::Color> > adjacentNode : node->getAdjacentNodes()) {
+            std::shared_ptr<GUINode<sf::Color> > adjacentGUINode = std::dynamic_pointer_cast<GUINode<sf::Color> >(adjacentNode);
             sf::Vertex line[] =
             {
                 sf::Vertex(sf::Vector2f(node->getPosition().at(0) + RADIUS, node->getPosition().at(1)+ RADIUS)),
@@ -39,27 +37,18 @@ void drawGraph(Graph<NODEVAL, EDGEVAL, isDirected, NODETYPE, EDGETYPE> &graph) {
     }
 
 
-    std::vector<NODE*> sortedNodes = graph.getNodes();
-    std::sort(sortedNodes.begin(), sortedNodes.end(), [](NODE *node1, NODE *node2) { return node1->getPosition().at(2) < node2->getPosition().at(2); });
-    for(NODE *node : sortedNodes) {
-
+    std::vector<std::shared_ptr<NODE>> sortedNodes = graph.getNodes();
+    std::sort(sortedNodes.begin(), sortedNodes.end(), [](std::shared_ptr<NODE> node1, std::shared_ptr<NODE> node2) { return node1->getPosition().at(2) < node2->getPosition().at(2); });
+    for(std::shared_ptr<NODE> node : sortedNodes) {
         sf::Texture texture;
         texture.loadFromFile(node->getPathToImage());
-        // Create a sprite
         sf::Sprite sprite;
         sprite.setTexture(texture);
-        //sprite.setTextureRect(sf::IntRect(0, 10, 50, 30));
         sprite.setColor(sf::Color(255, 255, 255, 255));
         sprite.setPosition(node->getPosition().at(0), node->getPosition().at(1));
-     //   sprite.setScale(0.1, 0.1);
+
         window.draw(sprite);
-
-       // shape.setFillColor(node->getValue());
-       // shape.setPosition(node->getPosition().at(0), node->getPosition().at(1));
-       // window.draw(shape);
     }
-
-
 
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -92,34 +81,13 @@ int main()
     winery->setPathToImage("image/winery_small.jpg");
     modeler->setPathToImage("image/topology_small.png");
     vinothek->setPathToImage("image/vinothek_small.png");
-    /*auto a = graph.addNode(sf::Color::Blue);
-    auto b = graph.addNode(sf::Color::Blue);
-    auto c = graph.addNode(sf::Color::Blue);
-    auto d = graph.addNode(sf::Color::Blue);
-
-    auto e = graph.addNode(sf::Color::Blue);
-    auto f = graph.addNode(sf::Color::Blue);
-    auto g = graph.addNode(sf::Color::Blue);
-
-    auto k = graph.addNode(sf::Color::Blue);
-    auto h = graph.addNode(sf::Color::Blue);
-    auto i = graph.addNode(sf::Color::Blue);
-    //auto j = graph.addNode(sf::Color::Blue);*/
 
 
     ExpandingGraphManager<sf::Color, bool, false, GUINode> gm(graph, WIDTH, HEIGHT, RADIUS);
 
-    /*auto a = graph.addNode(sf::Color::Green);
-    auto b = graph.addNode(sf::Color::Blue, {a});
-    auto c = graph.addNode(sf::Color::Yellow, {b});
-    auto d = graph.addNode(sf::Color::Cyan, {a, c});*/
-
-    //std::cout << a->getPosition() << std::endl;    ExpandingGraphManager<sf::Color, bool, false, GUINode> gm(graph, WIDTH, HEIGHT, RADIUS);
-
-
     int firstX = 0, firstY = 0;
     bool clicked = false;
-    GUINode<sf::Color> *addedNode = nullptr;
+    std::shared_ptr<GUINode<sf::Color> > addedNode = nullptr;
     while (window.isOpen())
     {
         sf::Event event;
@@ -138,13 +106,9 @@ int main()
                     }
 
                 }
-               // std::cout << "ho" << std::endl;
-//                auto x = graph.addNode(sf::Color(255, 255, 255), {container, openstack, modeler});
-  //              x->setPosition(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y, 0);
             }
             if (event.type == sf::Event::MouseWheelMoved) {
-                gm.setDeltaZ(event.mouseWheel.delta * 10000);
-                std::cout << event.mouseWheel.delta << std::endl;
+                gm.adjustRejectionFactor(event.mouseWheel.delta);
             }
         }
 
